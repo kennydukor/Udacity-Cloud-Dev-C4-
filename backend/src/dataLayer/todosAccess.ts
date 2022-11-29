@@ -2,11 +2,15 @@ import * as AWS from 'aws-sdk'
 const AWSXRay = require('aws-xray-sdk')
 const XAWS = AWSXRay.captureAWS(AWS)
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
-import { createLogger } from '../../utils/logger'
-import { TodoItem } from "../../models/TodoItem";
-import { TodoUpdate } from "../../models/TodoUpdate";
+import { createLogger } from '../utils/logger'
+import { TodoItem } from "../models/TodoItem";
+import { TodoUpdate } from "../models/TodoUpdate";
 
+const s3 = new XAWS.S3({ signatureVersion: 'v4' })
 const logger = createLogger('TodosAccess')
+export const bucketName = process.env.S3_BUCKET_NAME
+export const urlExpiration = process.env.SIGNED_URL_EXPIRATION
+export const s3Bucket = process.env.S3_BUCKET_NAME
 
 // TODO: Implement the dataLayer logic
 export class ToDoAccess {
@@ -94,4 +98,38 @@ export class ToDoAccess {
       return false;
     }
   }
+
+  async createAttachmentUrl(todoId: string, userId: string): Promise<string> {
+    let signedUrl: string;
+    try {
+        
+    logger.info('Creating attachment URL')
+    signedUrl = s3.getSignedUrl('putObject', {
+        Bucket: bucketName,
+        Key: todoId,
+        Expires: +urlExpiration
+    })
+
+    logger.log(s3Bucket, todoId, signedUrl)
+
+    const param = {
+        TableName: this.table,
+        Key: {
+          userId: userId,
+          todoId: todoId
+        },
+        UpdateExpression: "set attachmentUrl = :attachmentUrl",
+        ExpressionAttributeValues: {
+          ":attachmentUrl": `https://${s3Bucket}.s3.amazonaws.com/${todoId}`
+        }
+      }
+      await this.docDbClient.update(param).promise()
+
+      return signedUrl;
+    }
+
+    catch (err) {
+    logger.error(err)
+    }
+} 
 }

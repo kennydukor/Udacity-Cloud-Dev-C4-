@@ -1,7 +1,7 @@
 import 'source-map-support/register'
 import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda'
 import {CreateTodoRequest} from '../../requests/CreateTodoRequest';
-import {_create} from "../../auth/helper/todos";
+import {_create} from "../../businessLogic/todos";
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 
@@ -13,7 +13,8 @@ export const handler = middy(
         return {
             statusCode: 201,
             body: JSON.stringify({
-                item: dataObject
+                item: dataObject,
+                ...newTodo
             }),
         }
     }

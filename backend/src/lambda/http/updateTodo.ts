@@ -3,7 +3,7 @@ import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda'
 import * as middy from 'middy'
 import { cors, httpErrorHandler } from 'middy/middlewares'
 import {UpdateTodoRequest} from '../../requests/UpdateTodoRequest'
-import {_update} from "../../auth/helper/todos";
+import {_update} from "../../businessLogic/todos";
 
 
 export const handler = middy(

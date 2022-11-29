@@ -3,7 +3,7 @@ import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 
 import {APIGatewayProxyEvent, APIGatewayProxyResult} from 'aws-lambda';
-import {_getAll} from "../../auth/helper/todos";
+import {_getAll} from "../../businessLogic/todos";
 
 // TODO: Get all TODO items for a current user
 export const handler = middy(
@@ -14,7 +14,7 @@ export const handler = middy(
       return {
         statusCode: 200,
         body: JSON.stringify({
-            items: all_todos,
+            items: all_todos
         }),
     }
 })

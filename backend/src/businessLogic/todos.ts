@@ -1,25 +1,25 @@
-import {TodoItem} from "../../models/TodoItem";
-import { getUserId } from '../../lambda/utils';
+import {TodoItem} from "../models/TodoItem";
+import { getUserId } from '../lambda/utils';
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import {CreateTodoRequest} from "../../requests/CreateTodoRequest";
-import {UpdateTodoRequest} from "../../requests/UpdateTodoRequest";
-import {TodoUpdate} from "../../models/TodoUpdate";
-import { ToDoAccess } from "./todosAccess";
-import { AttachmentHandler } from "./attachmentUtils";
+import {CreateTodoRequest} from "../requests/CreateTodoRequest";
+import {UpdateTodoRequest} from "../requests/UpdateTodoRequest";
+import {TodoUpdate} from "../models/TodoUpdate";
+import { ToDoAccess } from "../dataLayer/todosAccess";
+// import { AttachmentHandler } from "../helper/attachmentUtils";
 import * as uuid from 'uuid'
 
 const todoAccess = new ToDoAccess();
-const attachmentHandler = new AttachmentHandler();
+// const attachmentHandler = new AttachmentHandler();
 
 export function _create(createTodoRequest: CreateTodoRequest, event: APIGatewayProxyEvent): Promise<TodoItem> {
     const userId = getUserId(event);
     const todoId =  uuid.v4();
-    const s3Bucket = process.env.S3_BUCKET_NAME;
+    // const s3Bucket = process.env.S3_BUCKET_NAME;
     
     return todoAccess.create({
         userId: userId,
         todoId: todoId,
-        attachmentUrl:  `https://${s3Bucket}.s3.amazonaws.com/${todoId}`, 
+        attachmentUrl:  '', //`https://${s3Bucket}.s3.amazonaws.com/${todoId}`, 
         createdAt: new Date().getTime().toString(),
         done: false,
         ...createTodoRequest,
@@ -41,6 +41,8 @@ export function _delete(todoId: string, event: APIGatewayProxyEvent): Promise<bo
     return todoAccess.delete(todoId, userId);
 }
 
-export function generateUploadUrl(todoId: string): Promise<string> {
-    return attachmentHandler.createAttachmentUrl(todoId);
+export function generateUploadUrl(todoId: string, event: APIGatewayProxyEvent): Promise<string> {
+    // return attachmentHandler.createAttachmentUrl(todoId);
+    const userId = getUserId(event);
+    return todoAccess.createAttachmentUrl(todoId, userId);
 }
