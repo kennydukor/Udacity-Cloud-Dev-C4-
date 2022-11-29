@@ -20,7 +20,7 @@ export class AttachmentHandler {
       this.table = process.env.TODOS_TABLE
     }
   
-    async createAttachmentUrl(todoId: string): Promise<string> {
+    async createAttachmentUrl(todoId: string, userId: string): Promise<string> {
         let signedUrl: string;
         try {
             
@@ -30,13 +30,14 @@ export class AttachmentHandler {
             Key: todoId,
             Expires: +urlExpiration
         })
-
+    
         logger.log(s3Bucket, todoId, signedUrl)
-
+    
         const param = {
             TableName: this.table,
             Key: {
-              "todoId": todoId
+              userId: userId,
+              todoId: todoId
             },
             UpdateExpression: "set attachmentUrl = :attachmentUrl",
             ExpressionAttributeValues: {
@@ -44,12 +45,12 @@ export class AttachmentHandler {
             }
           }
           await this.docDbClient.update(param).promise()
-
+    
           return signedUrl;
         }
-
+    
         catch (err) {
         logger.error(err)
         }
-    }
+    } 
 }
